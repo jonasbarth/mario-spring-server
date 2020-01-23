@@ -13,7 +13,12 @@ import main.engine.helper.MarioActions;
 import main.util.ImagePreprocesser;
 import main.util.MLAgent;
 import main.util.ServerMLAgent;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+@RestController
 public class MarioGame{
     /**
      * the maximum time that agent takes for each step
@@ -197,133 +202,147 @@ public class MarioGame{
      * @return statistics about the current game
      */
     public MarioResult runGame(MarioAgent agent, String level, int timer, int marioState, boolean visuals, int fps, float scale) {
-	if (visuals) {
-	    this.window = new JFrame("Mario AI Framework");
-	    this.render = new MarioRender(scale);
-	    this.window.setContentPane(this.render);
-	    this.window.pack();
-	    this.window.setResizable(false);
-	    this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    this.render.init();
-	    this.window.setVisible(true);
-	}
-	this.setAgent(agent);
-	    return this.gameLoop(level, timer, marioState, visuals, fps);
-    }
-    
-    private MarioResult gameLoop(String level, int timer, int marioState, boolean visual, int fps) {
-    this.world = new MarioWorld(this.killEvents);
-    
-	this.world.visuals = visual;
-	this.world.initializeLevel(level, 1000 * timer);
-	if (visual) {
-	    this.world.initializeVisuals(this.render.getGraphicsConfiguration());
-
-	}
-	this.world.mario.isLarge = marioState > 0;
-	this.world.mario.isFire = marioState > 1;
-	this.world.update(new boolean[MarioActions.numberOfActions()]);
-	long currentTime = System.currentTimeMillis();
-
-	//initialize graphics
-	VolatileImage renderTarget = null;
-	Graphics backBuffer = null;
-	Graphics currentBuffer = null;
-	int[][] currentFrame;
-
-	if(visual) {
-	    renderTarget = this.render.createVolatileImage(MarioGame.width, MarioGame.height);
-	    backBuffer = this.render.getGraphics();
-	    currentBuffer = renderTarget.getGraphics();
-	    this.render.addFocusListener(this.render);
-	}
-	//System.exit(0);
-	MarioTimer agentTimer = new MarioTimer(MarioGame.maxTime);
-	this.agent.initialize(new MarioForwardModel(this.world.clone()), agentTimer);
-	
-	ArrayList<MarioEvent> gameEvents = new ArrayList<>();
-	ArrayList<MarioAgentEvent> agentEvents = new ArrayList<>();
-	/*TODO Expose the GameState in the game loop. Receive actions from the Server
-	 */
-	/*TODO Implement frame skipping. How can I send multiple frames if Mario needs to make a decision every frame?*/
-
-        /*TODO calculate the reward based on the current state of the game*/
-	int[][] matrix = null;
-    MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
-    test.setX(this.world.mario.x);
-    test.setTick(this.world.currentTick);
-    int frameSkipping = 4;
-    boolean[] actions = {false, false, false, false, false};
-
-	while(this.world.gameStatus == GameStatus.RUNNING) {
-        if(visual) {
-            this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-            /*TODO Get the current frame and make a HTTP request*/
-            ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-            matrix = imgPre.getGrayscaleMatrix();
-
-            //System.out.println(this.world.coins);
-            //this.world.
-            //test.getActions(matrix, this.world.currentTick);
-
+        if (visuals) {
+            this.window = new JFrame("Mario AI Framework");
+            this.render = new MarioRender(scale);
+            this.window.setContentPane(this.render);
+            this.window.pack();
+            this.window.setResizable(false);
+            this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            this.render.init();
+            this.window.setVisible(true);
+        }
+        this.setAgent(agent);
+            return this.gameLoop(level, timer, marioState, visuals, fps);
         }
 
-	    if(!this.pause) {
-            //get actions
-            agentTimer = new MarioTimer(MarioGame.maxTime);
-            //boolean[] actions = this.agent.getActions(new MarioForwardModel(this.world.clone()), agentTimer);
-            //actions = test.getActions(matrix, test.calculateReward(this.world));
+        private MarioResult gameLoop(String level, int timer, int marioState, boolean visual, int fps) {
+        this.world = new MarioWorld(this.killEvents);
 
-            if (MarioGame.verbose) {
-                if (agentTimer.getRemainingTime() < 0 && Math.abs(agentTimer.getRemainingTime()) > MarioGame.graceTime) {
-                System.out.println("The Agent is slowing down the game by: "
-                    + Math.abs(agentTimer.getRemainingTime()) + " msec.");
-                }
-            }
-        // update world
-            //System.out.printf("%f %d \n", world.mario.x, world.currentTick);
-            test.setX(this.world.mario.x);
-            test.setTick(this.world.currentTick);
-            this.world.getEnemies();
-            this.world.update(actions);
-            gameEvents.addAll(this.world.lastFrameEvents);
-            agentEvents.add(new MarioAgentEvent(actions, this.world.mario.x,
-			this.world.mario.y, (this.world.mario.isLarge?1:0) + (this.world.mario.isFire?1:0), 
-			this.world.mario.onGround, this.world.currentTick));
-            //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
-            /*TODO after updating the world mario might die but the server is not notified. Maybe communication with the server needs to be moved
-            here instead so that the first action is to do nothing in the game.
-             */
-            actions = test.getActions(matrix, test.calculateReward(this.world));
-            //ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-            //matrix = imgPre.getGrayscaleMatrix();
-            //System.out.println(this.world.mario.alive);
+        this.world.visuals = visual;
+        this.world.initializeLevel(level, 1000 * timer);
+        if (visual) {
+            this.world.initializeVisuals(this.render.getGraphicsConfiguration());
 
-	    }
-	    
-	    //render world
-	    /*if(visual) {
-		    this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-            /*TODO Get the current frame and make a HTTP request/
+        }
+        this.world.mario.isLarge = marioState > 0;
+        this.world.mario.isFire = marioState > 1;
+        this.world.update(new boolean[MarioActions.numberOfActions()]);
+        long currentTime = System.currentTimeMillis();
+
+        //initialize graphics
+        VolatileImage renderTarget = null;
+        Graphics backBuffer = null;
+        Graphics currentBuffer = null;
+        int[][] currentFrame;
+
+        /*Initialises the game visuals*/
+        if(visual) {
+            renderTarget = this.render.createVolatileImage(MarioGame.width, MarioGame.height);
+            backBuffer = this.render.getGraphics();
+            currentBuffer = renderTarget.getGraphics();
+            this.render.addFocusListener(this.render);
+            this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
             ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
             int[][] matrix = imgPre.getGrayscaleMatrix();
             MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
-            test.getActions(matrix);
-            System.exit(0);
-	    } */
+            test.getActions(matrix, 0.0f);
 
-	    //check if delay needed
-	    if (this.getDelay(fps) > 0) {
-              try {
-                  currentTime += this.getDelay(fps);
-                  Thread.sleep(Math.max(0, currentTime - System.currentTimeMillis()));
-              } catch (InterruptedException e) {
-                  break;
-              }
-	    }
-	    /*Set the new X and the new tick of the Mario*/
+        }
+        System.exit(0);
+        MarioTimer agentTimer = new MarioTimer(MarioGame.maxTime);
+        this.agent.initialize(new MarioForwardModel(this.world.clone()), agentTimer);
 
-	}
-	return new MarioResult(this.world, gameEvents, agentEvents);
+        ArrayList<MarioEvent> gameEvents = new ArrayList<>();
+        ArrayList<MarioAgentEvent> agentEvents = new ArrayList<>();
+        /*TODO Expose the GameState in the game loop. Receive actions from the Server
+         */
+        /*TODO Implement frame skipping. How can I send multiple frames if Mario needs to make a decision every frame?*/
+
+            /*TODO calculate the reward based on the current state of the game*/
+        int[][] matrix = null;
+        MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
+        test.setX(this.world.mario.x);
+        test.setTick(this.world.currentTick);
+        int frameSkipping = 4;
+        boolean[] actions = {false, false, false, false, false};
+
+        while(this.world.gameStatus == GameStatus.RUNNING) {
+            if(visual) {
+                this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
+                /*TODO Get the current frame and make a HTTP request*/
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                matrix = imgPre.getGrayscaleMatrix();
+
+                //System.out.println(this.world.coins);
+                //this.world.
+                //test.getActions(matrix, this.world.currentTick);
+
+
+
+            }
+
+            if(!this.pause) {
+                //get actions
+                agentTimer = new MarioTimer(MarioGame.maxTime);
+                //boolean[] actions = this.agent.getActions(new MarioForwardModel(this.world.clone()), agentTimer);
+                //actions = test.getActions(matrix, test.calculateReward(this.world));
+
+                if (MarioGame.verbose) {
+                    if (agentTimer.getRemainingTime() < 0 && Math.abs(agentTimer.getRemainingTime()) > MarioGame.graceTime) {
+                    System.out.println("The Agent is slowing down the game by: "
+                        + Math.abs(agentTimer.getRemainingTime()) + " msec.");
+                    }
+                }
+            // update world
+                //System.out.printf("%f %d \n", world.mario.x, world.currentTick);
+                test.setX(this.world.mario.x);
+                test.setTick(this.world.currentTick);
+                this.world.getEnemies();
+                this.world.update(actions);
+                gameEvents.addAll(this.world.lastFrameEvents);
+                agentEvents.add(new MarioAgentEvent(actions, this.world.mario.x,
+                this.world.mario.y, (this.world.mario.isLarge?1:0) + (this.world.mario.isFire?1:0),
+                this.world.mario.onGround, this.world.currentTick));
+                //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
+                /*TODO after updating the world mario might die but the server is not notified. Maybe communication with the server needs to be moved
+                here instead so that the first action is to do nothing in the game.
+                 */
+                actions = test.getActions(matrix, test.calculateReward(this.world));
+                //ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                //matrix = imgPre.getGrayscaleMatrix();
+                //System.out.println(this.world.mario.alive);
+
+            }
+
+            //render world
+            /*if(visual) {
+                this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
+                /*TODO Get the current frame and make a HTTP request/
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                int[][] matrix = imgPre.getGrayscaleMatrix();
+                MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
+                test.getActions(matrix);
+                System.exit(0);
+            } */
+
+            //check if delay needed
+            if (this.getDelay(fps) > 0) {
+                  try {
+                      currentTime += this.getDelay(fps);
+                      Thread.sleep(Math.max(0, currentTime - System.currentTimeMillis()));
+                  } catch (InterruptedException e) {
+                      break;
+                  }
+            }
+            /*Set the new X and the new tick of the Mario*/
+
+        }
+        return new MarioResult(this.world, gameEvents, agentEvents);
+    }
+
+    @PostMapping("/init")
+    public String initGame() {
+        return "Initilaising game";
     }
 }
