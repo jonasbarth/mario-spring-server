@@ -56,7 +56,7 @@ public class PlayLevel {
 		ConfigurableApplicationContext context = builder.run(args);
 		MarioGame game = new MarioGame();
 
-		printResults(game.playGame(getLevel("/levels/original/lvl-1.txt"), 200, 0));
+		//printResults(game.playGame(getLevel("/levels/original/lvl-1.txt"), 200, 0));
 		//printResults(game.playGame(getLevel("original/lvl-2.txt", 200, 0)));
 		//printResults(game.runGame(new main.agents.robinBaumgarten.Agent(), getLevel("levels/original/lvl-1.txt"), 20, 0, true));
     }

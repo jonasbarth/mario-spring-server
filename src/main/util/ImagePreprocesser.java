@@ -39,13 +39,13 @@ public class ImagePreprocesser {
         return matrix;
     }
 
-    public int[][] getGrayscaleMatrix() {
-        BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_BYTE_GRAY);
+    public int[][][] getGrayscaleMatrix() {
+        BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
         Graphics2D bGr = bufferedImage.createGraphics();
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
-        byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        int[][] matrix = new int[bufferedImage.getHeight()][bufferedImage.getWidth()];
+        //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+        int[][][] matrix = new int[3][bufferedImage.getHeight()][bufferedImage.getWidth()];
 
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
@@ -61,7 +61,10 @@ public class ImagePreprocesser {
                 int b = p & 0xff;
 
                 int gray = (r + g + b) / 3;
-                matrix[i][j] = gray;
+                matrix[0][i][j] = r;
+                matrix[1][i][j] = g;
+                matrix[2][i][j] = b;
+
             }
         }
         return matrix;

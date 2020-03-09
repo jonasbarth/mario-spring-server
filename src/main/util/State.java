@@ -1,14 +1,28 @@
 package main.util;
 
+import main.engine.helper.GameStatus;
+
 public class State {
 
-    private int[][] frame;
+    private int[][][] frame;
+    private GameStatus gameStatus;
 
-    public State(int[][] frame) {
+
+
+    public void setFrame(int[][][] frame) {
         this.frame = frame;
     }
 
-    public int[][] getFrame() {
+    public int[][][] getFrame() {
         return this.frame;
+    }
+
+
+    public GameStatus getGameStatus() {
+        return gameStatus;
+    }
+
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
     }
 }
