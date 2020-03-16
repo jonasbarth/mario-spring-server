@@ -35,13 +35,14 @@ public class PlayLevel {
 		String curDir2 = System.getProperty("user.dir");
 	String content = "";
 	try {
-		File file = new File(PlayLevel.class.getResource(filepath).getFile());
-		System.out.println("File Exists " + file.exists());
-		InputStream is = new FileInputStream(file);
+		String fp = "/levels/custom/flat.txt";
+		File file = new File(PlayLevel.class.getResource(fp).getFile());
+		System.out.println("File Exists " + file.exists() + " " + file.getPath());
+		InputStream is = PlayLevel.class.getResourceAsStream(fp);
 		BufferedReader buf = new BufferedReader(new InputStreamReader(is));
 		String line = buf.readLine();
 		StringBuilder sb = new StringBuilder();
-		while(line != null){
+		while(line != null) {
 			sb.append(line).append("\n");
 			line = buf.readLine();
 		}
