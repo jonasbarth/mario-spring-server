@@ -391,6 +391,7 @@ public class MarioLevel {
     
     public void render(Graphics og, int cameraX, int cameraY) {
         System.out.println(this.graphics);
+        System.out.println(this.levelTiles);
         if (this.graphics == null)
 			this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
 		System.out.println(this.graphics);

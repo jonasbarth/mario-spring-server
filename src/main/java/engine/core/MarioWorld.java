@@ -88,7 +88,7 @@ public class MarioWorld {
     public void initializeLevel(String level, int timer) {
 	this.currentTimer = timer;
 	this.level = new MarioLevel(level, this.visuals);
-	
+	System.out.println("MarioLevel initialised " + this.level + " with following level\n" + level);
 	this.mario = new Mario(this.visuals, this.level.marioTileX * 16, this.level.marioTileY * 16);
 	this.mario.alive = true;
 	this.mario.world = this;
