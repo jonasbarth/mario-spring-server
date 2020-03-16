@@ -56,7 +56,8 @@ public class Assets
         BufferedImage source = null;
         try {
             //source = ImageIO.read(Assets.class.getResourceAsStream(img + imageName));
-            source = ImageIO.read(new FileInputStream(new File(img + imageName)));
+            source = ImageIO.read(Assets.class.getResourceAsStream("/images/" + imageName));
+            //source = ImageIO.read(new FileInputStream(new File(img + imageName)));
 
         }
         catch (Exception e) {
