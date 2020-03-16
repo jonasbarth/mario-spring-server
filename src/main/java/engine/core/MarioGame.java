@@ -374,6 +374,7 @@ public class MarioGame{
         int fps = init.getFps();
 
         String level = PlayLevel.getLevel(init.getLevel());
+        System.out.println("I got level " + level);
         if (visual) {
             this.window = new JFrame("Mario AI Framework");
             this.render = new MarioRender(scale);

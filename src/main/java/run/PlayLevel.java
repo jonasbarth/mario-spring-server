@@ -1,11 +1,12 @@
 package run;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import engine.core.MarioGame;
 import engine.core.MarioResult;
+import engine.helper.Assets;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -34,7 +35,21 @@ public class PlayLevel {
 		String curDir2 = System.getProperty("user.dir");
 	String content = "";
 	try {
-	    content = new String(Files.readAllBytes(Paths.get(curDir2 + filepath)));
+		File file = new File(PlayLevel.class.getResource(filepath).getFile());
+		System.out.println("File Exists " + file.exists());
+		InputStream is = new FileInputStream(file);
+		BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+		String line = buf.readLine();
+		StringBuilder sb = new StringBuilder();
+		while(line != null){
+			sb.append(line).append("\n");
+			line = buf.readLine();
+		}
+		//content = new String(Files.readAllBytes(Paths.get(filepath)));
+
+
+        content = sb.toString();
+        System.out.println(content);
 	} catch (IOException e) {
 		System.out.println(e.getMessage());
 	}
