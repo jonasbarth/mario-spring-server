@@ -42,6 +42,7 @@ public class PlayLevel {
     }
     
     public static void main(final String[] args) {
+		//System.setProperty("java.awt.headless", "true");
     	/*
         new Thread(
 				new Runnable() {
