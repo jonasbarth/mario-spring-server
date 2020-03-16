@@ -256,26 +256,27 @@ public class MarioLevel {
 		}
 	    }
 	}
-	if(!marioLocInit) {
-	    this.marioTileX = 0;
-	    this.marioTileY = findFirstFloor(lines, this.marioTileX);
-	}
-	if(!exitLocInit) {
-	    this.exitTileX = lines[0].length() - 1;
-	    this.exitTileY = findFirstFloor(lines, this.exitTileX);
-	}
-	for(int y=this.exitTileY; y>Math.max(1, this.exitTileY - 11); y--) {
-	    this.levelTiles[this.exitTileX][y] = 40;
-	}
-	System.out.printf("%d\n%d\n%d\n%d\n", this.levelTiles.length, this.exitTileX, Math.max(1, this.exitTileY - 11), this.levelTiles[this.exitTileX].length);
-	this.levelTiles[this.exitTileX][Math.max(1, this.exitTileY - 11)] = 39;
-	
-	if(visuals) {
-	    this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
-	    this.flag = new MarioImage(Assets.level, 41);
-	    this.flag.width = 16;
-	    this.flag.height = 16;
-	}
+		if(!marioLocInit) {
+			this.marioTileX = 0;
+			this.marioTileY = findFirstFloor(lines, this.marioTileX);
+		}
+		if(!exitLocInit) {
+			this.exitTileX = lines[0].length() - 1;
+			this.exitTileY = findFirstFloor(lines, this.exitTileX);
+		}
+		for(int y=this.exitTileY; y>Math.max(1, this.exitTileY - 11); y--) {
+			this.levelTiles[this.exitTileX][y] = 40;
+		}
+		System.out.printf("%d\n%d\n%d\n%d\n", this.levelTiles.length, this.exitTileX, Math.max(1, this.exitTileY - 11), this.levelTiles[this.exitTileX].length);
+		this.levelTiles[this.exitTileX][Math.max(1, this.exitTileY - 11)] = 39;
+		System.out.println("MarioLevel visuals is " + visuals);
+		if(visuals) {
+			this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
+			System.out.println("Assigned graphics a new MarioTileMap " + this.graphics);
+			this.flag = new MarioImage(Assets.level, 41);
+			this.flag.width = 16;
+			this.flag.height = 16;
+		}
     }
     
     public MarioLevel clone() {
@@ -389,9 +390,9 @@ public class MarioLevel {
     }
     
     public void render(Graphics og, int cameraX, int cameraY) {
-	this.graphics.render(og, cameraX, cameraY);
-	if(cameraX+MarioGame.width >= this.exitTileX * 16) {
-	    this.flag.render(og, this.exitTileX * 16 - 8 - cameraX, Math.max(1, this.exitTileY - 11) * 16 + 16 - cameraY);
-	}
+		this.graphics.render(og, cameraX, cameraY);
+		if(cameraX+MarioGame.width >= this.exitTileX * 16) {
+			this.flag.render(og, this.exitTileX * 16 - 8 - cameraX, Math.max(1, this.exitTileY - 11) * 16 + 16 - cameraY);
+		}
     }
 }
