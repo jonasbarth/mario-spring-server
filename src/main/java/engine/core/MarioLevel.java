@@ -390,6 +390,10 @@ public class MarioLevel {
     }
     
     public void render(Graphics og, int cameraX, int cameraY) {
+        System.out.println(this.graphics);
+        if (this.graphics == null)
+			this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
+		System.out.println(this.graphics);
 		this.graphics.render(og, cameraX, cameraY);
 		if(cameraX+MarioGame.width >= this.exitTileX * 16) {
 			this.flag.render(og, this.exitTileX * 16 - 8 - cameraX, Math.max(1, this.exitTileY - 11) * 16 + 16 - cameraY);
