@@ -269,10 +269,8 @@ public class MarioLevel {
 		}
 		System.out.printf("%d\n%d\n%d\n%d\n", this.levelTiles.length, this.exitTileX, Math.max(1, this.exitTileY - 11), this.levelTiles[this.exitTileX].length);
 		this.levelTiles[this.exitTileX][Math.max(1, this.exitTileY - 11)] = 39;
-		System.out.println("MarioLevel visuals is " + visuals);
 		if(visuals) {
 			this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
-			System.out.println("Assigned graphics a new MarioTileMap " + this.graphics);
 			this.flag = new MarioImage(Assets.level, 41);
 			this.flag.width = 16;
 			this.flag.height = 16;
@@ -390,11 +388,6 @@ public class MarioLevel {
     }
     
     public void render(Graphics og, int cameraX, int cameraY) {
-        System.out.println(this.graphics);
-        System.out.println(this.levelTiles);
-        if (this.graphics == null)
-			this.graphics = new MarioTilemap(Assets.level, this.levelTiles);
-		System.out.println(this.graphics);
 		this.graphics.render(og, cameraX, cameraY);
 		if(cameraX+MarioGame.width >= this.exitTileX * 16) {
 			this.flag.render(og, this.exitTileX * 16 - 8 - cameraX, Math.max(1, this.exitTileY - 11) * 16 + 16 - cameraY);
