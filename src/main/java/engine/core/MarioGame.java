@@ -1,5 +1,6 @@
 package engine.core;
 
+import java.awt.event.WindowEvent;
 import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.awt.*;
@@ -627,4 +628,31 @@ public class MarioGame{
         }
         return new Observation(reward, state);
     }
+
+
+    @RequestMapping(path= "/close", produces = "application/json")
+    public String close() {
+        this.window.dispatchEvent(new WindowEvent(this.window, WindowEvent.WINDOW_CLOSING));
+        return "Window closed";
+    }
+
+    @RequestMapping(path = "/timeout", produces = "application/json")
+    public String timeout() {
+        this.world.timeout();
+        return "Game timed out";
+    }
+
+    @RequestMapping(path = "/lose", produces = "application/json")
+    public String lose() {
+        this.world.lose();
+        return "Game lost";
+    }
+
+    @RequestMapping(path = "/win", produces = "application/json")
+    public String win() {
+        this.world.win();
+        return "Game won";
+    }
+
+
 }
