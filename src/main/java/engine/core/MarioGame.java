@@ -372,7 +372,7 @@ public class MarioGame{
         float scale = init.getScale();
         int marioState = init.getMarioState();
         int timer = init.getTimer();
-        int fps = init.getFps();
+        this.fps = init.getFps();
 
         String level = PlayLevel.getLevel(init.getLevel());
         if (visual) {
