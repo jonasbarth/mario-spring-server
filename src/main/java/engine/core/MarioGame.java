@@ -74,6 +74,9 @@ public class MarioGame{
     private ArrayList<MarioAgentEvent> agentEvents;
     private int fps;
     private final int FRAME_STACK = 4;
+    private String level;
+    private boolean[] previousAction;
+    private float previousReward;
     
     /**
      * Create a mario game to be played
@@ -373,6 +376,7 @@ public class MarioGame{
         int marioState = init.getMarioState();
         int timer = init.getTimer();
         this.fps = init.getFps();
+        this.level = init.getLevel();
 
         String level = PlayLevel.getLevel(init.getLevel());
         if (visual) {
@@ -459,6 +463,7 @@ public class MarioGame{
         State state = new State();
         int[][][] currentFrame = null;
         long currentTime = System.currentTimeMillis();
+        this.previousAction = actions;
 
         if (this.world.gameStatus == GameStatus.RUNNING) {
 
@@ -537,6 +542,7 @@ public class MarioGame{
         states[0] = state;
         Reward finalReward = new Reward();
         finalReward.setReward(cumReward);
+        this.previousReward = finalReward.getReward();
         return new Observation(finalReward, state, states);
 
     }
@@ -652,6 +658,11 @@ public class MarioGame{
     public String win() {
         this.world.win();
         return "Game won";
+    }
+
+    @RequestMapping(path = "/status", produces = "application/json")
+    public GameState status() {
+        return new GameState(this.level, this.world.gameStatus, this.world.currentTick, this.world.mario.y, this.world.mario.x, this.world.mario.alive, this.fps, this.world.currentTimer, this.previousAction, this.previousReward);
     }
 
 
