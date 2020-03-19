@@ -14,8 +14,9 @@ public class GameState {
     private int timer;
     private boolean[] previousAction;
     private float previousReward;
+    private int[][][] previousFrame;
 
-    public GameState(String level, GameStatus status, int tick, float marioY, float marioX, boolean marioAlive, int fps, int timer, boolean[] previousAction, float previousReward) {
+    public GameState(String level, GameStatus status, int tick, float marioY, float marioX, boolean marioAlive, int fps, int timer, boolean[] previousAction, float previousReward, int[][][] previousFrame) {
         this.level = level;
         this.status = status;
         this.tick = tick;
@@ -26,6 +27,7 @@ public class GameState {
         this.timer = timer;
         this.previousAction = previousAction;
         this.previousReward = previousReward;
+        this.previousFrame = previousFrame;
     }
 
     public String getLevel() {
@@ -106,5 +108,13 @@ public class GameState {
 
     public void setPreviousReward(float previousReward) {
         this.previousReward = previousReward;
+    }
+
+    public int[][][] getPreviousFrame() {
+        return previousFrame;
+    }
+
+    public void setPreviousFrame(int[][][] previousFrame) {
+        this.previousFrame = previousFrame;
     }
 }

@@ -77,6 +77,7 @@ public class MarioGame{
     private String level;
     private boolean[] previousAction;
     private float previousReward;
+    private int[][][] previousFrame;
     
     /**
      * Create a mario game to be played
@@ -434,7 +435,7 @@ public class MarioGame{
                 cumReward += obs.getReward().getReward();
                 states[i] = obs.getState();
             }
-
+            this.previousFrame = states[FRAME_STACK-1].getFrame();
             finalReward = new Reward();
             finalReward.setReward(cumReward);
 
@@ -604,6 +605,7 @@ public class MarioGame{
 
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
                 currentFrame = imgPre.getGrayscaleMatrix();
+                this.previousFrame = currentFrame;
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
 
@@ -662,7 +664,7 @@ public class MarioGame{
 
     @RequestMapping(path = "/status", produces = "application/json")
     public GameState status() {
-        return new GameState(this.level, this.world.gameStatus, this.world.currentTick, this.world.mario.y, this.world.mario.x, this.world.mario.alive, this.fps, this.world.currentTimer, this.previousAction, this.previousReward);
+        return new GameState(this.level, this.world.gameStatus, this.world.currentTick, this.world.mario.y, this.world.mario.x, this.world.mario.alive, this.fps, this.world.currentTimer, this.previousAction, this.previousReward, this.previousFrame);
     }
 
 
