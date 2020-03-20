@@ -87,6 +87,7 @@ public class MarioGame{
     //These two fields represent the state observed by the py4j RL agent
     private int[][][][] frames = new int[FRAME_STACK][][][];
     private float reward;
+    private String gameStatus;
     
     /**
      * Create a mario game to be played
@@ -447,6 +448,7 @@ public class MarioGame{
                 this.frames[i] = obs.getState().getFrame();
             }
             this.previousFrame = states[FRAME_STACK-1].getFrame();
+            this.gameStatus = this.world.gameStatus.toString();
             finalReward = new Reward();
             finalReward.setReward(cumReward);
 
@@ -520,6 +522,7 @@ public class MarioGame{
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
 
+                this.gameStatus = this.world.gameStatus.toString();
                 this.frames[0] = currentFrame;
 
             }
@@ -691,6 +694,10 @@ public class MarioGame{
 
     public float getReward() {
         return this.reward;
+    }
+
+    public String getGameStatus() {
+        return this.gameStatus;
     }
 
     public byte[] getByteArray() {
