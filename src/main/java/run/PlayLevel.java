@@ -11,9 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import py4j.GatewayServer;
 
-@SpringBootApplication
-@ComponentScan(basePackageClasses = engine.core.MarioGame.class)
 public class PlayLevel {
     public static void printResults(MarioResult result) {
 	System.out.println("****************************************************************");
@@ -66,13 +65,11 @@ public class PlayLevel {
 						SpringApplication.run(PlayLevel.class, args);
 					}
 				}).run(); */
-		SpringApplicationBuilder builder = new SpringApplicationBuilder(PlayLevel.class);
 
-		builder.headless(false);
 
-		ConfigurableApplicationContext context = builder.run(args);
 		MarioGame game = new MarioGame();
-
+		GatewayServer gatewayServer = new GatewayServer(game);
+		gatewayServer.start();
 		//printResults(game.playGame(getLevel("/levels/original/lvl-1.txt"), 200, 0));
 		//printResults(game.playGame(getLevel("original/lvl-2.txt", 200, 0)));
 		//printResults(game.runGame(new main.agents.robinBaumgarten.Agent(), getLevel("levels/original/lvl-1.txt"), 20, 0, true));

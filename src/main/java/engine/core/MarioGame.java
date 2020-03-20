@@ -3,6 +3,8 @@ package engine.core;
 import java.awt.event.WindowEvent;
 import java.awt.image.VolatileImage;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 
@@ -220,7 +222,7 @@ public class MarioGame{
 
         boolean[] right = {false,true,false,false,false};
         for (int i = 0; i < 50; i++) {
-            this.executeAction(right);
+            //this.executeAction(right);
         }
 
         return null;
@@ -370,16 +372,13 @@ public class MarioGame{
      * Initialises the game environment and the start
      * state for the agent. Returns the starting state.
      */
-    @PostMapping(path = "/init", consumes = "application/json", produces = "application/json")
-    public Observation initGameEnv(@RequestBody Init init) {
-        boolean visual = init.isVisual();
-        float scale = init.getScale();
-        int marioState = init.getMarioState();
-        int timer = init.getTimer();
-        this.fps = init.getFps();
-        this.level = init.getLevel();
 
-        String level = PlayLevel.getLevel(init.getLevel());
+    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath) {
+
+        this.fps = fps;
+        this.level = levelPath;
+
+        String level = PlayLevel.getLevel(levelPath);
         if (visual) {
             this.window = new JFrame("Mario AI Framework");
             this.render = new MarioRender(scale);
@@ -458,13 +457,13 @@ public class MarioGame{
      *
      * Returns a new state and the reward associated with that action.
      */
-    @PostMapping(path = "/action", consumes = "application/json", produces = "application/json")
-    public Observation executeAction(@RequestBody boolean[] actions) {
+
+    public Observation executeAction(java.util.List<Boolean> actions) {
         Reward reward = new Reward();
         State state = new State();
         int[][][] currentFrame = null;
         long currentTime = System.currentTimeMillis();
-        this.previousAction = actions;
+        this.previousAction = this.toPrimitiveArray(actions);
 
         if (this.world.gameStatus == GameStatus.RUNNING) {
 
@@ -492,9 +491,9 @@ public class MarioGame{
                 reward.setX(this.world.mario.x);
                 reward.setTick(this.world.currentTick);
                 this.world.getEnemies();
-                this.world.update(actions);
+                this.world.update(this.previousAction);
                 this.gameEvents.addAll(this.world.lastFrameEvents);
-                this.agentEvents.add(new MarioAgentEvent(actions, this.world.mario.x,
+                this.agentEvents.add(new MarioAgentEvent(this.previousAction, this.world.mario.x,
                         this.world.mario.y, (this.world.mario.isLarge?1:0) + (this.world.mario.isFire?1:0),
                         this.world.mario.onGround, this.world.currentTick));
 
@@ -548,15 +547,12 @@ public class MarioGame{
 
     }
 
-    @RequestMapping("/hello/{name}")
-    public String hello(@PathVariable String name) {
+
+    public String hello(String name) {
         return "Hello, " + name + "!";
     }
 
-    @PostMapping(path = "/inits", consumes = "application/json", produces = "application/json")
-    public String init(@RequestBody boolean b, @RequestBody boolean c) {
-        return "You sent me: " + b + " : " + c;
-    }
+
 
     /**
      * Performs another step in the game.
@@ -638,33 +634,42 @@ public class MarioGame{
     }
 
 
-    @RequestMapping(path= "/close", produces = "application/json")
+
     public String close() {
         this.window.dispatchEvent(new WindowEvent(this.window, WindowEvent.WINDOW_CLOSING));
         return "Window closed";
     }
 
-    @RequestMapping(path = "/timeout", produces = "application/json")
+
     public String timeout() {
         this.world.timeout();
         return "Game timed out";
     }
 
-    @RequestMapping(path = "/lose", produces = "application/json")
+
     public String lose() {
         this.world.lose();
         return "Game lost";
     }
 
-    @RequestMapping(path = "/win", produces = "application/json")
+
     public String win() {
         this.world.win();
         return "Game won";
     }
 
-    @RequestMapping(path = "/status", produces = "application/json")
+
     public GameState status() {
         return new GameState(this.level, this.world.gameStatus, this.world.currentTick, this.world.mario.y, this.world.mario.x, this.world.mario.alive, this.fps, this.world.currentTimer, this.previousAction, this.previousReward, this.previousFrame);
+    }
+
+    private boolean[] toPrimitiveArray(final List<Boolean> booleanList) {
+        final boolean[] primitives = new boolean[booleanList.size()];
+        int index = 0;
+        for (Boolean object : booleanList) {
+            primitives[index++] = object;
+        }
+        return primitives;
     }
 
 

@@ -141,6 +141,14 @@
         </dependency>
 
 
+            <dependency>
+                <groupId>com.py4j</groupId>
+                <artifactId>py4j</artifactId>
+                <version>0.10.8.1</version>
+            </dependency>
+
+
+
     </dependencies>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
