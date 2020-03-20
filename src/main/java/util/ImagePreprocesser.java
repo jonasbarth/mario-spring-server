@@ -1,9 +1,12 @@
 package util;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.VolatileImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class ImagePreprocesser {
 
@@ -68,6 +71,26 @@ public class ImagePreprocesser {
             }
         }
         return matrix;
+    }
+
+    public byte[] getBytes() {
+        BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+        Graphics2D bGr = bufferedImage.createGraphics();
+        bGr.drawImage(this.image, 0, 0, null);
+        bGr.dispose();
+        byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+
+
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpg", baos);
+            byte[] bytes = baos.toByteArray();
+            return bytes;
+        }
+        catch (IOException e) {
+            return new byte[0];
+        }
+
     }
 
 }

@@ -2,6 +2,8 @@ package engine.core;
 
 import java.awt.event.WindowEvent;
 import java.awt.image.VolatileImage;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 
 import javax.swing.JFrame;
+import com.google.common.primitives.Ints;
 
 import org.springframework.http.MediaType;
 import run.PlayLevel;
@@ -80,6 +83,10 @@ public class MarioGame{
     private boolean[] previousAction;
     private float previousReward;
     private int[][][] previousFrame;
+
+    //These two fields represent the state observed by the py4j RL agent
+    private int[][][][] frames = new int[FRAME_STACK][][][];
+    private float reward;
     
     /**
      * Create a mario game to be played
@@ -427,16 +434,23 @@ public class MarioGame{
             state.setGameStatus(this.world.gameStatus);
             states[0] = state;
 
-            int cumReward = 0;
+            //Start setting the current frames to be extracted by the RL agent
+            this.frames[0] = currentFrame;
+
+            float cumReward = 0;
             boolean[] dummyStep = {false, false, false, false, false};
             for (int i = 1; i < this.FRAME_STACK; i++) {
                 Observation obs = this.step(dummyStep);
                 cumReward += obs.getReward().getReward();
                 states[i] = obs.getState();
+
+                this.frames[i] = obs.getState().getFrame();
             }
             this.previousFrame = states[FRAME_STACK-1].getFrame();
             finalReward = new Reward();
             finalReward.setReward(cumReward);
+
+
 
 
 
@@ -459,6 +473,7 @@ public class MarioGame{
      */
 
     public Observation executeAction(java.util.List<Boolean> actions) {
+        this.reward = 0;
         Reward reward = new Reward();
         State state = new State();
         int[][][] currentFrame = null;
@@ -505,18 +520,11 @@ public class MarioGame{
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
 
+                this.frames[0] = currentFrame;
+
             }
 
-            //render world
-                /*if(visual) {
-                    this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-                    /*TODO Get the current frame and make a HTTP request/
-                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-                    int[][] matrix = imgPre.getGrayscaleMatrix();
-                    MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
-                    test.getActions(matrix);
-                    System.exit(0);
-                } */
+
 
             //check if delay needed
             if (this.getDelay(this.fps) > 0) {
@@ -538,6 +546,10 @@ public class MarioGame{
             Observation obs = this.step(dummyStep);
             cumReward += obs.getReward().getReward();
             states[i] = obs.getState();
+
+            //set fields for the py4j RL agent to extract
+            this.frames[i] = obs.getState().getFrame();
+            this.reward += obs.getReward().getReward();
         }
         states[0] = state;
         Reward finalReward = new Reward();
@@ -672,5 +684,38 @@ public class MarioGame{
         return primitives;
     }
 
+    public int[][][][] getFrames() {
 
+        return this.frames;
+    }
+
+    public float getReward() {
+        return this.reward;
+    }
+
+    public byte[] getByteArray() {
+        int frames = this.FRAME_STACK;
+        int channels = 3;
+        int width = 240;
+        int height = 256;
+        // Set up a ByteBuffer called intBuffer
+        ByteBuffer intBuffer = ByteBuffer.allocate(4*frames*channels*width*height); // 4 bytes in an int
+        intBuffer.order(ByteOrder.LITTLE_ENDIAN); // Java's default is big-endian
+
+        // Copy ints from intArray into intBuffer as bytes
+        for (int f = 0; f < frames; f++) {
+            for (int c = 0; c < channels; c++){
+                for (int w = 0; w < width; w++) {
+                    for (int h = 0; h < height; h++) {
+                        intBuffer.putInt(this.frames[f][c][w][h]);
+                    }
+                }
+
+            }
+        }
+
+        // Convert the ByteBuffer to a byte array and return it
+        byte[] byteArray = intBuffer.array();
+        return byteArray;
+    }
 }
