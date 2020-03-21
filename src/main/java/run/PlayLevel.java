@@ -64,7 +64,7 @@ public class PlayLevel {
 
 
 		MarioGame game = new MarioGame();
-		GatewayServer gatewayServer = new GatewayServer(game);
+		GatewayServer gatewayServer = new GatewayServer(game, 25335);
 		gatewayServer.start();
 		//printResults(game.playGame(getLevel("/levels/original/lvl-1.txt"), 200, 0));
 		//printResults(game.playGame(getLevel("original/lvl-2.txt", 200, 0)));
