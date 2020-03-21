@@ -56,9 +56,7 @@ public class Observation {
         int width = this.frames[0][0].length;
         int height = this.frames[0][0][0].length;
 
-        System.out.printf("width %d  x  height %d\n", width, height);
-        //if (true)
-            //return new byte[4*frames*3*84*84];
+
         // Set up a ByteBuffer called intBuffer
         ByteBuffer intBuffer = ByteBuffer.allocate(4*frames*channels*width*height); // 4 bytes in an int
         intBuffer.order(ByteOrder.LITTLE_ENDIAN); // Java's default is big-endian

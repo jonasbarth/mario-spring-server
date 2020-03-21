@@ -13,15 +13,14 @@ import java.awt.event.KeyAdapter;
 import javax.swing.JFrame;
 import com.google.common.primitives.Ints;
 
-import org.springframework.http.MediaType;
 import run.PlayLevel;
 import agents.human.Agent;
 import engine.helper.GameStatus;
 import engine.helper.MarioActions;
 import util.*;
-import org.springframework.web.bind.annotation.*;
 
-@RestController
+
+
 public class MarioGame{
     /**
      * the maximum time that agent takes for each step
@@ -88,7 +87,9 @@ public class MarioGame{
     private int[][][][] frames = new int[FRAME_STACK][][][];
     private float reward;
     private String gameStatus;
-    
+    private int scaledWidth;
+    private int scaledHeight;
+
     /**
      * Create a mario game to be played
      */
@@ -276,7 +277,7 @@ public class MarioGame{
                 currentBuffer = renderTarget.getGraphics();
                 this.render.addFocusListener(this.render);
                 this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
                 int[][][] matrix = imgPre.getGrayscaleMatrix();
                 MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
                 //test.getActions(matrix, 0.0f);
@@ -288,11 +289,7 @@ public class MarioGame{
 
             ArrayList<MarioEvent> gameEvents = new ArrayList<>();
             ArrayList<MarioAgentEvent> agentEvents = new ArrayList<>();
-            /*TODO Expose the GameState in the game loop. Receive actions from the Server
-             */
-            /*TODO Implement frame skipping. How can I send multiple frames if Mario needs to make a decision every frame?*/
 
-                /*TODO calculate the reward based on the current state of the game*/
             int[][][] matrix = null;
             MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
             test.setX(this.world.mario.x);
@@ -304,7 +301,7 @@ public class MarioGame{
                 if(visual) {
                     this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
                     /*TODO Get the current frame and make a HTTP request*/
-                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
                     matrix = imgPre.getGrayscaleMatrix();
 
                     //System.out.println(this.world.coins);
@@ -381,10 +378,12 @@ public class MarioGame{
      * state for the agent. Returns the starting state.
      */
 
-    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath) {
+    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight) {
 
         this.fps = fps;
         this.level = levelPath;
+        this.scaledWidth = scaledWidth;
+        this.scaledHeight = scaledHeight;
 
         String level = PlayLevel.getLevel(levelPath);
         if (visual) {
@@ -428,8 +427,8 @@ public class MarioGame{
             this.render.addFocusListener(this.render);
             this.render.renderWorld(this.world, this.renderTarget, this.backBuffer, this.currentBuffer);
 
-            ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-            currentFrame = imgPre.getGrayscaleMatrix();
+            ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
+            currentFrame = imgPre.getRGBMatrix();
 
             state.setFrame(currentFrame);
             state.setGameStatus(this.world.gameStatus);
@@ -450,19 +449,17 @@ public class MarioGame{
             this.previousFrame = states[FRAME_STACK-1].getFrame();
             this.gameStatus = this.world.gameStatus.toString();
             finalReward = new Reward();
-            finalReward.setReward(cumReward);
 
-
-
-
+            //initial reward is always 0 at first
+            finalReward.setReward(0);
 
 
         }
 
-
-
-
-        return new Observation(finalReward, state, states);
+        Observation obs = new Observation(finalReward, state, states);
+        obs.setFrames(this.frames);
+        obs.setGameStatus(this.world.gameStatus.toString());
+        return obs;
     }
 
 
@@ -517,7 +514,7 @@ public class MarioGame{
                 //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
                 reward.calculateReward(this.world);
 
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
                 currentFrame = imgPre.getGrayscaleMatrix();
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
@@ -558,7 +555,11 @@ public class MarioGame{
         Reward finalReward = new Reward();
         finalReward.setReward(cumReward);
         this.previousReward = finalReward.getReward();
-        return new Observation(finalReward, state, states);
+
+        Observation obs = new Observation(finalReward, state, states);
+        obs.setFrames(this.frames);
+        obs.setGameStatus(this.world.gameStatus.toString());
+        return obs;
 
     }
 
@@ -583,10 +584,6 @@ public class MarioGame{
 
             this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
             /*TODO Get the current frame and make a HTTP request*/
-            //ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-            //currentFrame = imgPre.getGrayscaleMatrix();
-
-
 
             if(!this.pause) {
 
@@ -600,7 +597,7 @@ public class MarioGame{
                     }
                 }
                 // update world
-                //System.out.printf("%f %d \n", world.mario.x, world.currentTick);
+
 
                 reward.setX(this.world.mario.x);
                 reward.setTick(this.world.currentTick);
@@ -611,10 +608,10 @@ public class MarioGame{
                         this.world.mario.y, (this.world.mario.isLarge?1:0) + (this.world.mario.isFire?1:0),
                         this.world.mario.onGround, this.world.currentTick));
 
-                //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
+
                 reward.calculateReward(this.world);
 
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
                 currentFrame = imgPre.getGrayscaleMatrix();
                 this.previousFrame = currentFrame;
                 state.setFrame(currentFrame);
@@ -622,16 +619,6 @@ public class MarioGame{
 
             }
 
-            //render world
-                /*if(visual) {
-                    this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-                    /*TODO Get the current frame and make a HTTP request/
-                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget);
-                    int[][] matrix = imgPre.getGrayscaleMatrix();
-                    MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
-                    test.getActions(matrix);
-                    System.exit(0);
-                } */
 
             //check if delay needed
             if (this.getDelay(this.fps) > 0) {
@@ -645,6 +632,7 @@ public class MarioGame{
             /*Set the new X and the new tick of the Mario*/
 
         }
+
         return new Observation(reward, state);
     }
 
@@ -700,29 +688,4 @@ public class MarioGame{
         return this.gameStatus;
     }
 
-    public byte[] getByteArray() {
-        int frames = this.FRAME_STACK;
-        int channels = 3;
-        int width = 240;
-        int height = 256;
-        // Set up a ByteBuffer called intBuffer
-        ByteBuffer intBuffer = ByteBuffer.allocate(4*frames*channels*width*height); // 4 bytes in an int
-        intBuffer.order(ByteOrder.LITTLE_ENDIAN); // Java's default is big-endian
-
-        // Copy ints from intArray into intBuffer as bytes
-        for (int f = 0; f < frames; f++) {
-            for (int c = 0; c < channels; c++){
-                for (int w = 0; w < width; w++) {
-                    for (int h = 0; h < height; h++) {
-                        intBuffer.putInt(this.frames[f][c][w][h]);
-                    }
-                }
-
-            }
-        }
-
-        // Convert the ByteBuffer to a byte array and return it
-        byte[] byteArray = intBuffer.array();
-        return byteArray;
-    }
 }

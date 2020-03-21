@@ -1,6 +1,7 @@
 package util;
 
 import javafx.scene.transform.Scale;
+import org.imgscalr.Scalr;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -15,24 +16,30 @@ import java.io.IOException;
 public class ImagePreprocesser {
 
     private VolatileImage image;
+    private int scaledWidth;
+    private int scaledHeight;
 
-    public ImagePreprocesser(VolatileImage image) {
+    public ImagePreprocesser(VolatileImage image, int scaledWidth, int scaledHeight) {
         this.image = image;
+        this.scaledHeight = scaledHeight;
+        this.scaledWidth = scaledWidth;
     }
 
-    public int[][] getRGBMatrix() {
+    public int[][][] getRGBMatrix() {
         BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
-        bufferedImage = cropImage(bufferedImage, 0, 20, 256, 220);
+
         Graphics2D bGr = bufferedImage.createGraphics();
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
-        byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        int[][] matrix = new int[bufferedImage.getHeight()][bufferedImage.getWidth()];
+        BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
+        BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+        //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+        int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
 
-        for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = 0; j < bufferedImage.getWidth(); j++) {
+        for (int i = 0; i < finalImage.getHeight(); i++) {
+            for (int j = 0; j < finalImage.getWidth(); j++) {
                 //System.out.println(bufferedImage.getRGB(j, i));
-                int p = bufferedImage.getRGB(j, i);
+                int p = finalImage.getRGB(j, i);
                 //get alpha
                 int a = (p>>24) & 0xff;
                 //get red
@@ -41,7 +48,12 @@ public class ImagePreprocesser {
                 int g = (p>>8) & 0xff;
                 //get blue
                 int b = p & 0xff;
-                matrix[i][j] = bufferedImage.getRGB(j, i);
+
+                int gray = (r + g + b) / 3;
+                matrix[0][i][j] = r;
+                matrix[1][i][j] = g;
+                matrix[2][i][j] = b;
+
             }
         }
         return matrix;
@@ -54,15 +66,14 @@ public class ImagePreprocesser {
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
         BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
-        BufferedImage scaled = bilinear(cropped, 84, 84);
+        BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        int[][][] matrix = new int[3][cropped.getHeight()][cropped.getWidth()];
-        System.out.printf("%d x %d\n", bufferedImage.getHeight(),bufferedImage.getWidth());
+        int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
 
-        for (int i = 0; i < cropped.getHeight(); i++) {
-            for (int j = 0; j < cropped.getWidth(); j++) {
+        for (int i = 0; i < finalImage.getHeight(); i++) {
+            for (int j = 0; j < finalImage.getWidth(); j++) {
                 //System.out.println(bufferedImage.getRGB(j, i));
-                int p = cropped.getRGB(j, i);
+                int p = finalImage.getRGB(j, i);
                 //get alpha
                 int a = (p>>24) & 0xff;
                 //get red
@@ -117,11 +128,14 @@ public class ImagePreprocesser {
     }
 
     public static BufferedImage bilinear(BufferedImage bufferedImage, int width, int height) {
+        BufferedImage image = Scalr.resize(bufferedImage, Scalr.Method.AUTOMATIC, Scalr.Mode.FIT_EXACT, width, height);
+        return image;
+        /*
         BufferedImage scaledImage = new BufferedImage(width, height, bufferedImage.getType());
         final AffineTransform at = AffineTransform.getScaleInstance(bufferedImage.getWidth() / width, bufferedImage.getHeight() / height);
         final AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
         scaledImage = ato.filter(bufferedImage, scaledImage);
-        return scaledImage;
+        return scaledImage;*/
     }
 
     public static BufferedImage bicubic(BufferedImage bufferedImage, int width, int height) {

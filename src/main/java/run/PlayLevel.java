@@ -7,10 +7,6 @@ import java.nio.file.Paths;
 import engine.core.MarioGame;
 import engine.core.MarioResult;
 import engine.helper.Assets;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
 import py4j.GatewayServer;
 
 public class PlayLevel {
