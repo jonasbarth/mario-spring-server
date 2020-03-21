@@ -1,7 +1,11 @@
 package util;
 
+import javafx.scene.transform.Scale;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.VolatileImage;
@@ -18,6 +22,7 @@ public class ImagePreprocesser {
 
     public int[][] getRGBMatrix() {
         BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+        bufferedImage = cropImage(bufferedImage, 0, 20, 256, 220);
         Graphics2D bGr = bufferedImage.createGraphics();
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
@@ -44,16 +49,20 @@ public class ImagePreprocesser {
 
     public int[][][] getGrayscaleMatrix() {
         BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+
         Graphics2D bGr = bufferedImage.createGraphics();
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
+        BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
+        BufferedImage scaled = bilinear(cropped, 84, 84);
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        int[][][] matrix = new int[3][bufferedImage.getHeight()][bufferedImage.getWidth()];
+        int[][][] matrix = new int[3][cropped.getHeight()][cropped.getWidth()];
+        System.out.printf("%d x %d\n", bufferedImage.getHeight(),bufferedImage.getWidth());
 
-        for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = 0; j < bufferedImage.getWidth(); j++) {
+        for (int i = 0; i < cropped.getHeight(); i++) {
+            for (int j = 0; j < cropped.getWidth(); j++) {
                 //System.out.println(bufferedImage.getRGB(j, i));
-                int p = bufferedImage.getRGB(j, i);
+                int p = cropped.getRGB(j, i);
                 //get alpha
                 int a = (p>>24) & 0xff;
                 //get red
@@ -91,6 +100,44 @@ public class ImagePreprocesser {
             return new byte[0];
         }
 
+    }
+
+    /**
+     * Crops an image to the specified region
+     * @param bufferedImage the image that will be crop
+     * @param x the upper left x coordinate that this region will start
+     * @param y the upper left y coordinate that this region will start
+     * @param width the width of the region that will be crop
+     * @param height the height of the region that will be crop
+     * @return the image that was cropped.
+     */
+    public static BufferedImage cropImage(BufferedImage bufferedImage, int x, int y, int width, int height){
+        BufferedImage croppedImage = bufferedImage.getSubimage(x, y, width, height);
+        return croppedImage;
+    }
+
+    public static BufferedImage bilinear(BufferedImage bufferedImage, int width, int height) {
+        BufferedImage scaledImage = new BufferedImage(width, height, bufferedImage.getType());
+        final AffineTransform at = AffineTransform.getScaleInstance(bufferedImage.getWidth() / width, bufferedImage.getHeight() / height);
+        final AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+        scaledImage = ato.filter(bufferedImage, scaledImage);
+        return scaledImage;
+    }
+
+    public static BufferedImage bicubic(BufferedImage bufferedImage, int width, int height) {
+        BufferedImage scaledImage = new BufferedImage(width, height, bufferedImage.getType());
+        final AffineTransform at = AffineTransform.getScaleInstance(bufferedImage.getWidth() / width, bufferedImage.getHeight() / height);
+        final AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+        scaledImage = ato.filter(bufferedImage, scaledImage);
+        return scaledImage;
+    }
+
+    public static BufferedImage nearestNeighbour(BufferedImage bufferedImage, int width, int height) {
+        BufferedImage scaledImage = new BufferedImage(width, height, bufferedImage.getType());
+        final AffineTransform at = AffineTransform.getScaleInstance(bufferedImage.getWidth() / width, bufferedImage.getHeight() / height);
+        final AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        scaledImage = ato.filter(bufferedImage, scaledImage);
+        return scaledImage;
     }
 
 }
