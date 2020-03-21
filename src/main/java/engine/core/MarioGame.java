@@ -487,7 +487,6 @@ public class MarioGame{
             //currentFrame = imgPre.getGrayscaleMatrix();
 
 
-
             if(!this.pause) {
 
                 agentTimer = new MarioTimer(MarioGame.maxTime);
@@ -559,6 +558,7 @@ public class MarioGame{
         Observation obs = new Observation(finalReward, state, states);
         obs.setFrames(this.frames);
         obs.setGameStatus(this.world.gameStatus.toString());
+        System.out.println(obs.getGameStatus());
         return obs;
 
     }
@@ -632,8 +632,9 @@ public class MarioGame{
             /*Set the new X and the new tick of the Mario*/
 
         }
-
-        return new Observation(reward, state);
+        Observation observation = new Observation(reward, state);
+        observation.setGameStatus(this.world.gameStatus.toString());
+        return observation;
     }
 
 
