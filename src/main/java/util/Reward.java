@@ -54,8 +54,10 @@ public class Reward {
         }
 
 
-        float reward = v + c +d;
+        float reward = v + c + d;
         this.reward = reward > 15 ? 15 : reward;
         this.reward = reward < -15 ? -15 : reward;
+
+        System.out.println("Reward is " + this.reward);
     }
 }

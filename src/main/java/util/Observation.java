@@ -35,6 +35,7 @@ public class Observation {
     }
 
     public float getValue() {
+
         return this.reward.getReward();
     }
 

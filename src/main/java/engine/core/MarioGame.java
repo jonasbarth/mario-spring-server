@@ -451,7 +451,7 @@ public class MarioGame{
             finalReward = new Reward();
 
             //initial reward is always 0 at first
-            finalReward.setReward(0);
+            finalReward.setReward(0.0f);
 
 
         }
@@ -511,7 +511,7 @@ public class MarioGame{
                         this.world.mario.onGround, this.world.currentTick));
 
                 //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
-                reward.calculateReward(this.world);
+                //reward.calculateReward(this.world);
 
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
                 currentFrame = imgPre.getGrayscaleMatrix();
@@ -538,7 +538,8 @@ public class MarioGame{
 
         }
 
-        int cumReward = 0;
+        float cumReward = 0.0f;
+
         boolean[] dummyStep = {false, false, false, false, false};
         State[] states = new State[4];
         for (int i = 1; i < this.FRAME_STACK; i++) {
@@ -555,7 +556,9 @@ public class MarioGame{
         finalReward.setReward(cumReward);
         this.previousReward = finalReward.getReward();
 
-        Observation obs = new Observation(finalReward, state, states);
+        reward.calculateReward(this.world);
+
+        Observation obs = new Observation(reward, state, states);
         obs.setFrames(this.frames);
         obs.setGameStatus(this.world.gameStatus.toString());
         System.out.println(obs.getGameStatus());
@@ -601,6 +604,7 @@ public class MarioGame{
 
                 reward.setX(this.world.mario.x);
                 reward.setTick(this.world.currentTick);
+
                 this.world.getEnemies();
                 this.world.update(actions);
                 this.gameEvents.addAll(this.world.lastFrameEvents);
