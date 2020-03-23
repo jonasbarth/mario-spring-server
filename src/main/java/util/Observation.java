@@ -1,5 +1,7 @@
 package util;
 
+import engine.core.MarioGame;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -52,7 +54,8 @@ public class Observation {
     }
 
     public byte[] getByteArray() {
-        int frames = this.frames.length;
+
+        int frames = MarioGame.FRAME_STACK;
         int channels = this.frames[0].length;
         int width = this.frames[0][0].length;
         int height = this.frames[0][0][0].length;

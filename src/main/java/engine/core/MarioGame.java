@@ -77,7 +77,8 @@ public class MarioGame{
     private ArrayList<MarioEvent> gameEvents;
     private ArrayList<MarioAgentEvent> agentEvents;
     private int fps;
-    private final int FRAME_STACK = 4;
+    public static final int FRAME_STACK = 1;
+    private final int FRAME_SKIP = 4;
     private String level;
     private boolean[] previousAction;
     private float previousReward;
@@ -438,15 +439,16 @@ public class MarioGame{
             this.frames[0] = currentFrame;
 
             float cumReward = 0;
+            Observation obs = null;
             boolean[] dummyStep = {false, false, false, false, false};
-            for (int i = 1; i < this.FRAME_STACK; i++) {
-                Observation obs = this.step(dummyStep);
+            for (int i = 1; i < this.FRAME_SKIP; i++) {
+                obs = this.step(dummyStep);
                 cumReward += obs.getReward().getReward();
                 states[i] = obs.getState();
 
-                this.frames[i] = obs.getState().getFrame();
+                //this.frames[i] = obs.getState().getFrame();
             }
-            this.previousFrame = states[FRAME_STACK-1].getFrame();
+            //this.previousFrame = states[FRAME_SKIP-1].getFrame();
             this.gameStatus = this.world.gameStatus.toString();
             finalReward = new Reward();
 
@@ -542,15 +544,17 @@ public class MarioGame{
 
         boolean[] dummyStep = {false, false, false, false, false};
         State[] states = new State[4];
-        for (int i = 1; i < this.FRAME_STACK; i++) {
-            Observation obs = this.step(dummyStep);
+        Observation obs = null;
+        for (int i = 1; i < this.FRAME_SKIP; i++) {
+            obs = this.step(dummyStep);
             cumReward += obs.getReward().getReward();
             states[i] = obs.getState();
 
             //set fields for the py4j RL agent to extract
-            this.frames[i] = obs.getState().getFrame();
+            //this.frames[i] = obs.getState().getFrame();
             this.reward += obs.getReward().getReward();
         }
+
         states[0] = state;
         Reward finalReward = new Reward();
         finalReward.setReward(cumReward);
@@ -558,11 +562,11 @@ public class MarioGame{
 
         reward.calculateReward(this.world);
 
-        Observation obs = new Observation(reward, state, states);
-        obs.setFrames(this.frames);
-        obs.setGameStatus(this.world.gameStatus.toString());
+        Observation finalObs = new Observation(reward, state, states);
+        finalObs.setFrames(this.frames);
+        finalObs.setGameStatus(this.world.gameStatus.toString());
         System.out.println(obs.getGameStatus());
-        return obs;
+        return finalObs;
 
     }
 
@@ -620,6 +624,7 @@ public class MarioGame{
                 this.previousFrame = currentFrame;
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
+                this.frames[0] = currentFrame;
 
             }
 
