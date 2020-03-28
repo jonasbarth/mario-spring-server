@@ -58,6 +58,5 @@ public class Reward {
         this.reward = reward > 15 ? 15 : reward;
         this.reward = reward < -15 ? -15 : reward;
 
-        System.out.println("Reward is " + this.reward);
     }
 }
