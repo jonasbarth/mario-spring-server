@@ -68,7 +68,7 @@ public class ImagePreprocesser {
         BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
         BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
+        int[][][] matrix = new int[1][finalImage.getHeight()][finalImage.getWidth()];
 
         for (int i = 0; i < finalImage.getHeight(); i++) {
             for (int j = 0; j < finalImage.getWidth(); j++) {
@@ -84,9 +84,12 @@ public class ImagePreprocesser {
                 int b = p & 0xff;
 
                 int gray = (r + g + b) / 3;
-                matrix[0][i][j] = r;
-                matrix[1][i][j] = g;
-                matrix[2][i][j] = b;
+                /*matrix[0][i][j] = r;
+                #matrix[1][i][j] = g;
+                #matrix[2][i][j] = b; */
+
+                matrix[0][i][j] = gray;
+
 
             }
         }

@@ -90,6 +90,7 @@ public class MarioGame{
     private String gameStatus;
     private int scaledWidth;
     private int scaledHeight;
+    private boolean rgb;
 
     /**
      * Create a mario game to be played
@@ -380,12 +381,13 @@ public class MarioGame{
      * state for the agent. Returns the starting state.
      */
 
-    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight) {
+    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight, boolean rgb) {
 
         this.fps = fps;
         this.level = levelPath;
         this.scaledWidth = scaledWidth;
         this.scaledHeight = scaledHeight;
+        this.rgb = rgb;
 
         String level = PlayLevel.getLevel(levelPath);
         if (visual) {
@@ -430,7 +432,13 @@ public class MarioGame{
             this.render.renderWorld(this.world, this.renderTarget, this.backBuffer, this.currentBuffer);
 
             ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
-            currentFrame = imgPre.getRGBMatrix();
+            if (rgb) {
+                currentFrame = imgPre.getRGBMatrix();
+            }
+            else {
+                currentFrame = imgPre.getGrayscaleMatrix();
+            }
+
 
             state.setFrame(currentFrame);
             state.setGameStatus(this.world.gameStatus);
@@ -517,7 +525,13 @@ public class MarioGame{
                 //reward.calculateReward(this.world);
 
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
-                currentFrame = imgPre.getGrayscaleMatrix();
+                if (this.rgb) {
+                    currentFrame = imgPre.getRGBMatrix();
+                }
+                else {
+                    currentFrame = imgPre.getGrayscaleMatrix();
+                }
+
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
 
@@ -622,7 +636,12 @@ public class MarioGame{
                 reward.calculateReward(this.world);
 
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
-                currentFrame = imgPre.getGrayscaleMatrix();
+                if (this.rgb) {
+                    currentFrame = imgPre.getRGBMatrix();
+                }
+                else {
+                    currentFrame = imgPre.getGrayscaleMatrix();
+                }
                 this.previousFrame = currentFrame;
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);
