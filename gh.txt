@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/jonasbarth/mario-spring-server/aws/target/mario-1.0-SNAPSHOT.jar
+DAT-4195-HPJD

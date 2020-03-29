@@ -358,6 +358,7 @@ public class MarioGame{
                 } */
 
                 //check if delay needed
+                /*
                 if (this.getDelay(fps) > 0) {
                       try {
                           currentTime += this.getDelay(fps);
@@ -365,7 +366,7 @@ public class MarioGame{
                       } catch (InterruptedException e) {
                           break;
                       }
-                }
+                } */
                 /*Set the new X and the new tick of the Mario*/
 
             }
@@ -528,6 +529,7 @@ public class MarioGame{
 
 
             //check if delay needed
+            /*
             if (this.getDelay(this.fps) > 0) {
                 try {
                     currentTime += this.getDelay(this.fps);
@@ -535,7 +537,7 @@ public class MarioGame{
                 } catch (InterruptedException e) {
                     return null;
                 }
-            }
+            } */
             /*Set the new X and the new tick of the Mario*/
 
         }
@@ -630,14 +632,16 @@ public class MarioGame{
 
 
             //check if delay needed
+            /*
             if (this.getDelay(this.fps) > 0) {
+                System.out.println("Delaying fps");
                 try {
                     currentTime += this.getDelay(this.fps);
                     Thread.sleep(Math.max(0, currentTime - System.currentTimeMillis()));
                 } catch (InterruptedException e) {
                     return null;
                 }
-            }
+            } */
             /*Set the new X and the new tick of the Mario*/
 
         }
