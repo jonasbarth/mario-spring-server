@@ -41,11 +41,11 @@ public class Reward {
                 break;
 
             case LOSE:
-                d = -15.0f;
+                d = -100.0f;
                 break;
 
             case TIME_OUT:
-                d = -15.0f;
+                d = -100.0f;
                 break;
 
             default:
@@ -56,7 +56,7 @@ public class Reward {
 
         float reward = v + c + d;
         this.reward = reward > 15 ? 15 : reward;
-        this.reward = reward < -15 ? -15 : reward;
+        //this.reward = reward < -15 ? -15 : reward;
 
     }
 }
