@@ -91,6 +91,7 @@ public class MarioGame{
     private int scaledWidth;
     private int scaledHeight;
     private boolean rgb;
+    private boolean egocentric;
 
     /**
      * Create a mario game to be played
@@ -279,7 +280,7 @@ public class MarioGame{
                 currentBuffer = renderTarget.getGraphics();
                 this.render.addFocusListener(this.render);
                 this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                 int[][][] matrix = imgPre.getGrayscaleMatrix();
                 MLAgent test = new ServerMLAgent("http://127.0.0.1:5000/");
                 //test.getActions(matrix, 0.0f);
@@ -303,7 +304,7 @@ public class MarioGame{
                 if(visual) {
                     this.render.renderWorld(this.world, renderTarget, backBuffer, currentBuffer);
                     /*TODO Get the current frame and make a HTTP request*/
-                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
+                    ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                     matrix = imgPre.getGrayscaleMatrix();
 
                     //System.out.println(this.world.coins);
@@ -381,13 +382,14 @@ public class MarioGame{
      * state for the agent. Returns the starting state.
      */
 
-    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight, boolean rgb) {
+    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight, boolean rgb, boolean egocentric) {
 
         this.fps = fps;
         this.level = levelPath;
         this.scaledWidth = scaledWidth;
         this.scaledHeight = scaledHeight;
         this.rgb = rgb;
+        this.egocentric = egocentric;
 
         String level = PlayLevel.getLevel(levelPath);
         if (visual) {
@@ -408,6 +410,7 @@ public class MarioGame{
             this.world.initializeVisuals(this.render.getGraphicsConfiguration());
 
         }
+        System.out.printf("Mario is at %f, %f\n", this.world.mario.x, this.world.mario.y);
         this.world.mario.isLarge = marioState > 0;
         this.world.mario.isFire = marioState > 1;
         this.world.update(new boolean[MarioActions.numberOfActions()]);
@@ -431,12 +434,20 @@ public class MarioGame{
             this.render.addFocusListener(this.render);
             this.render.renderWorld(this.world, this.renderTarget, this.backBuffer, this.currentBuffer);
 
-            ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
-            if (rgb) {
-                currentFrame = imgPre.getRGBMatrix();
+            ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
+            if (this.rgb) {
+                if (this.egocentric) {
+                    currentFrame = imgPre.getEgoRGBMatrix();
+                } else {
+                    currentFrame = imgPre.getRGBMatrix();
+                }
             }
-            else {
-                currentFrame = imgPre.getGrayscaleMatrix();
+            else if (!this.rgb) {
+                if (this.egocentric) {
+                    currentFrame = imgPre.getEgoGrayscaleMatrix();
+                } else {
+                    currentFrame = imgPre.getGrayscaleMatrix();
+                }
             }
 
 
@@ -524,12 +535,20 @@ public class MarioGame{
                 //System.out.printf("%f %d \n\n", world.mario.x, world.currentTick);
                 //reward.calculateReward(this.world);
 
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                 if (this.rgb) {
-                    currentFrame = imgPre.getRGBMatrix();
+                    if (this.egocentric) {
+                        currentFrame = imgPre.getEgoRGBMatrix();
+                    } else {
+                        currentFrame = imgPre.getRGBMatrix();
+                    }
                 }
-                else {
-                    currentFrame = imgPre.getGrayscaleMatrix();
+                else if (!this.rgb) {
+                    if (this.egocentric) {
+                        currentFrame = imgPre.getEgoGrayscaleMatrix();
+                    } else {
+                        currentFrame = imgPre.getGrayscaleMatrix();
+                    }
                 }
 
                 state.setFrame(currentFrame);
@@ -562,7 +581,7 @@ public class MarioGame{
         State[] states = new State[4];
         Observation obs = null;
         for (int i = 1; i < this.FRAME_SKIP; i++) {
-            obs = this.step(dummyStep);
+            obs = this.step(this.previousAction);
             cumReward += obs.getReward().getReward();
             states[i] = obs.getState();
 
@@ -581,7 +600,8 @@ public class MarioGame{
         Observation finalObs = new Observation(reward, state, states);
         finalObs.setFrames(this.frames);
         finalObs.setGameStatus(this.world.gameStatus.toString());
-        System.out.println(obs.getGameStatus());
+
+        System.out.printf("Mario is at %f, %f\n", this.world.mario.x, this.world.mario.y);
         return finalObs;
 
     }
@@ -635,13 +655,22 @@ public class MarioGame{
 
                 reward.calculateReward(this.world);
 
-                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight);
+                ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                 if (this.rgb) {
-                    currentFrame = imgPre.getRGBMatrix();
+                    if (this.egocentric) {
+                        currentFrame = imgPre.getEgoRGBMatrix();
+                    } else {
+                        currentFrame = imgPre.getRGBMatrix();
+                    }
                 }
-                else {
-                    currentFrame = imgPre.getGrayscaleMatrix();
+                else if (!this.rgb) {
+                    if (this.egocentric) {
+                        currentFrame = imgPre.getEgoGrayscaleMatrix();
+                    } else {
+                        currentFrame = imgPre.getGrayscaleMatrix();
+                    }
                 }
+
                 this.previousFrame = currentFrame;
                 state.setFrame(currentFrame);
                 state.setGameStatus(this.world.gameStatus);

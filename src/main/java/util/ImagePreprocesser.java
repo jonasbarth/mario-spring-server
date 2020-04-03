@@ -1,5 +1,7 @@
 package util;
 
+
+import engine.core.MarioWorld;
 import javafx.scene.transform.Scale;
 import org.imgscalr.Scalr;
 
@@ -11,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.VolatileImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 
 public class ImagePreprocesser {
@@ -18,11 +21,14 @@ public class ImagePreprocesser {
     private VolatileImage image;
     private int scaledWidth;
     private int scaledHeight;
+    private MarioWorld marioWorld;
+    private final int egoOffset = 50;
 
-    public ImagePreprocesser(VolatileImage image, int scaledWidth, int scaledHeight) {
+    public ImagePreprocesser(VolatileImage image, int scaledWidth, int scaledHeight, MarioWorld marioWorld) {
         this.image = image;
         this.scaledHeight = scaledHeight;
         this.scaledWidth = scaledWidth;
+        this.marioWorld = marioWorld;
     }
 
     public int[][][] getRGBMatrix() {
@@ -33,6 +39,7 @@ public class ImagePreprocesser {
         bGr.dispose();
         BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
         BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
         int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
 
@@ -67,6 +74,7 @@ public class ImagePreprocesser {
         bGr.dispose();
         BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
         BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
         int[][][] matrix = new int[1][finalImage.getHeight()][finalImage.getWidth()];
 
@@ -95,6 +103,143 @@ public class ImagePreprocesser {
         }
         return matrix;
     }
+
+    public int[][][] getEgoGrayscaleMatrix() {
+        BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D bGr = bufferedImage.createGraphics();
+        bGr.drawImage(this.image, 0, 0, null);
+        bGr.dispose();
+        //BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
+        //BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+        BufferedImage finalImage = getEgocentric(bufferedImage, this.marioWorld.mario.x, this.marioWorld.mario.y);
+        //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+        int[][][] matrix = new int[1][finalImage.getHeight()][finalImage.getWidth()];
+
+        for (int i = 0; i < finalImage.getHeight(); i++) {
+            for (int j = 0; j < finalImage.getWidth(); j++) {
+                //System.out.println(bufferedImage.getRGB(j, i));
+                int p = finalImage.getRGB(j, i);
+                //get alpha
+                int a = (p>>24) & 0xff;
+                //get red
+                int r = (p>>16) & 0xff;
+                //get green
+                int g = (p>>8) & 0xff;
+                //get blue
+                int b = p & 0xff;
+
+                int gray = (r + g + b) / 3;
+                /*matrix[0][i][j] = r;
+                #matrix[1][i][j] = g;
+                #matrix[2][i][j] = b; */
+
+                matrix[0][i][j] = gray;
+
+
+            }
+        }
+        return matrix;
+    }
+
+    public int[][][] getEgoRGBMatrix() {
+        BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D bGr = bufferedImage.createGraphics();
+        bGr.drawImage(this.image, 0, 0, null);
+        bGr.dispose();
+        //BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
+        //BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+        BufferedImage egoImage = getEgocentric(bufferedImage, this.marioWorld.mario.x, this.marioWorld.mario.y);
+        BufferedImage finalImage = bilinear(egoImage, this.getEgocentricScaledWidth(), this.getEgocentricScaledHeight());
+        //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+        File outputfile = new File("image.jpg");
+        try {
+            ImageIO.write(finalImage, "jpg", outputfile);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
+
+        for (int i = 0; i < finalImage.getHeight(); i++) {
+            for (int j = 0; j < finalImage.getWidth(); j++) {
+                //System.out.println(bufferedImage.getRGB(j, i));
+                int p = finalImage.getRGB(j, i);
+                //get alpha
+                int a = (p>>24) & 0xff;
+                //get red
+                int r = (p>>16) & 0xff;
+                //get green
+                int g = (p>>8) & 0xff;
+                //get blue
+                int b = p & 0xff;
+
+                int gray = (r + g + b) / 3;
+                matrix[0][i][j] = r;
+                matrix[1][i][j] = g;
+                matrix[2][i][j] = b;
+
+            }
+        }
+        return matrix;
+    }
+
+    public BufferedImage getEgocentric(BufferedImage image, float marioX, float marioY) {
+        float offset = 50.0f;
+        float x1 = marioX - offset;
+        float x2 = offset * 2;
+        float y1 = marioY - offset;
+        float y2 = offset * 2;
+
+
+        /*Mario is too far left to the screen so we need to have more pixels on the right*/
+        if (marioX - offset < 0.0f) {
+            x1 = 0.0f;
+            x2 = marioX + offset + Math.abs(marioX - offset);
+        }
+        /*Mario is too far right on the screen so we need more pixels on the left*/
+        else if (marioX + offset > image.getWidth()) {
+            x1 = marioX - offset - (offset - (image.getWidth() - marioX));
+            x2 = image.getWidth() - x1;
+        }
+        /*Mario is too far up on the screen so we need more pixels below*/
+        if (marioY - offset < 0.0f) {
+            y1 = 0.0f;
+            y2 = marioY + offset + Math.abs(marioY - offset);
+        }
+        /*Mario is too far down on the screen so need more pixels above*/
+        else if (marioY + offset > image.getHeight()) {
+            y1 = marioY - offset - (offset - (image.getHeight() - marioY));
+            y2 = image.getHeight() - y1;
+        }
+
+        BufferedImage cropped = cropImage(image, (int) x1, (int) y1, (int) x2, (int) y2);
+        System.out.printf("x1 = %f, x2 = %f, y1 = %f, y2 = %f\nDims = %d x % d\n", x1, x2, y1, y2, cropped.getWidth(), cropped.getHeight());
+        File outputfile = new File("image.jpg");
+        try {
+            ImageIO.write(cropped, "jpg", outputfile);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return cropped;
+
+    }
+
+    private int getEgocentricScaledWidth() {
+        float scaling = 0.35f;
+        return (int) scaling * (this.egoOffset * 2);
+    }
+
+    private int getEgocentricScaledHeight() {
+        float scaling = 0.35f;
+        return (int) scaling * (this.egoOffset * 2);
+    }
+
+
+
 
     public byte[] getBytes() {
         BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
