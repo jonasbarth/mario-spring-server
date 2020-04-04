@@ -37,7 +37,7 @@ public class Reward {
         switch (world.gameStatus) {
 
             case WIN:
-                d = 15.0f;
+                d = 100.0f;
                 break;
 
             case LOSE:
@@ -55,7 +55,7 @@ public class Reward {
 
 
         float reward = v + c + d;
-        this.reward = reward > 15 ? 15 : reward;
+        //this.reward = reward > 15 ? 15 : reward;
         //this.reward = reward < -15 ? -15 : reward;
 
     }
