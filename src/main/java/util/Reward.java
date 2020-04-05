@@ -54,10 +54,10 @@ public class Reward {
         }
 
 
-        this.reward = v + c + d;
+        reward = v + c + d;
 
-        //this.reward = reward > 15 ? 15 : reward;
-        //this.reward = reward < -15 ? -15 : reward;
+        this.reward = reward > 100 ? 100 : reward;
+        this.reward = reward < -100 ? -100 : reward;
 
     }
 }
