@@ -153,13 +153,8 @@ public class ImagePreprocesser {
         BufferedImage egoImage = getEgocentric(bufferedImage, this.marioWorld.mario.x, this.marioWorld.mario.y);
         BufferedImage finalImage = bilinear(egoImage, this.getEgocentricScaledWidth(), this.getEgocentricScaledHeight());
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        File outputfile = new File("image.jpg");
-        try {
-            ImageIO.write(finalImage, "jpg", outputfile);
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+
+
         int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
 
         for (int i = 0; i < finalImage.getHeight(); i++) {
@@ -229,13 +224,13 @@ public class ImagePreprocesser {
     }
 
     private int getEgocentricScaledWidth() {
-        float scaling = 0.35f;
-        return (int) scaling * (this.egoOffset * 2);
+        float scaling = 0.5f;
+        return (int) (scaling * (this.egoOffset * 2));
     }
 
     private int getEgocentricScaledHeight() {
-        float scaling = 0.35f;
-        return (int) scaling * (this.egoOffset * 2);
+        float scaling = 0.5f;
+        return (int) (scaling * (this.egoOffset * 2));
     }
 
 
