@@ -152,7 +152,7 @@ public class ImagePreprocesser {
         //BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
         BufferedImage egoImage = getEgocentric(bufferedImage, marioX, marioY);
 
-        BufferedImage finalImage = bilinear(egoImage, this.getEgocentricScaledWidth(), this.getEgocentricScaledHeight());
+        BufferedImage finalImage = bilinear(egoImage, this.scaledWidth, this.scaledHeight);
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
 
 
