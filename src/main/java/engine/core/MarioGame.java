@@ -78,7 +78,7 @@ public class MarioGame{
     private ArrayList<MarioAgentEvent> agentEvents;
     private int fps;
     public static final int FRAME_STACK = 1;
-    private final int FRAME_SKIP = 4;
+    private int FRAME_SKIP = 4;
     private String level;
     private boolean[] previousAction;
     private float previousReward;
@@ -382,7 +382,7 @@ public class MarioGame{
      * state for the agent. Returns the starting state.
      */
 
-    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight, boolean rgb, boolean egocentric) {
+    public Observation initGameEnv(boolean visual, float scale, int marioState, int timer, int fps, String levelPath, int scaledWidth, int scaledHeight, boolean rgb, boolean egocentric, int frameSkip) {
 
         this.fps = fps;
         this.level = levelPath;
@@ -390,6 +390,7 @@ public class MarioGame{
         this.scaledHeight = scaledHeight;
         this.rgb = rgb;
         this.egocentric = egocentric;
+        this.FRAME_SKIP = frameSkip;
 
         String level = PlayLevel.getLevel(levelPath);
         if (visual) {
