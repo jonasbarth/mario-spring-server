@@ -142,7 +142,7 @@ public class ImagePreprocesser {
         return matrix;
     }
 
-    public int[][][] getEgoRGBMatrix() {
+    public int[][][] getEgoRGBMatrix(float marioX, float marioY) {
         BufferedImage bufferedImage = new BufferedImage(256, 240, BufferedImage.TYPE_INT_RGB);
 
         Graphics2D bGr = bufferedImage.createGraphics();
@@ -150,7 +150,8 @@ public class ImagePreprocesser {
         bGr.dispose();
         //BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
         //BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
-        BufferedImage egoImage = getEgocentric(bufferedImage, this.marioWorld.mario.x, this.marioWorld.mario.y);
+        BufferedImage egoImage = getEgocentric(bufferedImage, marioX, marioY);
+
         BufferedImage finalImage = bilinear(egoImage, this.getEgocentricScaledWidth(), this.getEgocentricScaledHeight());
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
 
@@ -182,42 +183,50 @@ public class ImagePreprocesser {
 
     public BufferedImage getEgocentric(BufferedImage image, float marioX, float marioY) {
         float offset = 50.0f;
-        float x1 = marioX - offset;
+        float x1 = marioX - offset - this.marioWorld.cameraX;
         float x2 = offset * 2;
-        float y1 = marioY - offset;
+        float y1 = marioY - offset - this.marioWorld.cameraY;
         float y2 = offset * 2;
 
 
         /*Mario is too far left to the screen so we need to have more pixels on the right*/
         if (marioX - offset < 0.0f) {
+            //System.out.println("Mario is too far left on the screen");
             x1 = 0.0f;
             x2 = marioX + offset + Math.abs(marioX - offset);
         }
         /*Mario is too far right on the screen so we need more pixels on the left*/
-        else if (marioX + offset > image.getWidth()) {
-            x1 = marioX - offset - (offset - (image.getWidth() - marioX));
+        else if (marioX + offset - this.marioWorld.cameraX > image.getWidth()) {
+            //System.out.println("Mario is too far right on the screen");
+            x1 = marioX - this.marioWorld.cameraX - offset - (offset - (image.getWidth() - marioX));
             x2 = image.getWidth() - x1;
         }
         /*Mario is too far up on the screen so we need more pixels below*/
         if (marioY - offset < 0.0f) {
+            //System.out.println("Mario is too far up on the screen");
             y1 = 0.0f;
             y2 = marioY + offset + Math.abs(marioY - offset);
         }
         /*Mario is too far down on the screen so need more pixels above*/
-        else if (marioY + offset > image.getHeight()) {
-            y1 = marioY - offset - (offset - (image.getHeight() - marioY));
+        else if (marioY + offset - this.marioWorld.cameraY > image.getHeight()) {
+            //System.out.println("Mario is too far down on the screen.");
+            y1 = marioY - this.marioWorld.cameraY - offset - (offset - (image.getHeight() - marioY));
             y2 = image.getHeight() - y1;
         }
 
+
         BufferedImage cropped = cropImage(image, (int) x1, (int) y1, (int) x2, (int) y2);
-        System.out.printf("x1 = %f, x2 = %f, y1 = %f, y2 = %f\nDims = %d x % d\n", x1, x2, y1, y2, cropped.getWidth(), cropped.getHeight());
-        File outputfile = new File("image.jpg");
+        //System.out.printf("Mario is at %f, %f\n", marioX, marioY);
+        //System.out.printf("x1 = %f, x2 = %f, y1 = %f, y2 = %f\tDims = %d x % d\tcameraX = %f, cameraY = %f\txa = %f, ya = %f\n", x1, x2, y1, y2, cropped.getWidth(), cropped.getHeight(), this.marioWorld.cameraX, this.marioWorld.cameraY, this.marioWorld.mario.xa, this.marioWorld.mario.ya);
+        /*
+        File outputfile = new File("image_" + x1 + ".jpg");
         try {
             ImageIO.write(cropped, "jpg", outputfile);
         }
         catch (IOException e) {
             System.out.println(e.getMessage());
-        }
+        } */
+
 
         return cropped;
 

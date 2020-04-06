@@ -437,7 +437,7 @@ public class MarioGame{
             ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
             if (this.rgb) {
                 if (this.egocentric) {
-                    currentFrame = imgPre.getEgoRGBMatrix();
+                    currentFrame = imgPre.getEgoRGBMatrix(this.world.mario.x, this.world.mario.y);
                 } else {
                     currentFrame = imgPre.getRGBMatrix();
                 }
@@ -538,7 +538,7 @@ public class MarioGame{
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                 if (this.rgb) {
                     if (this.egocentric) {
-                        currentFrame = imgPre.getEgoRGBMatrix();
+                        currentFrame = imgPre.getEgoRGBMatrix(this.world.mario.x, this.world.mario.y);
                     } else {
                         currentFrame = imgPre.getRGBMatrix();
                     }
@@ -601,7 +601,7 @@ public class MarioGame{
         finalObs.setFrames(this.frames);
         finalObs.setGameStatus(this.world.gameStatus.toString());
 
-        System.out.printf("Mario is at %f, %f\n", this.world.mario.x, this.world.mario.y);
+
         return finalObs;
 
     }
@@ -658,7 +658,7 @@ public class MarioGame{
                 ImagePreprocesser imgPre = new ImagePreprocesser(renderTarget, this.scaledWidth, this.scaledHeight, this.world);
                 if (this.rgb) {
                     if (this.egocentric) {
-                        currentFrame = imgPre.getEgoRGBMatrix();
+                        currentFrame = imgPre.getEgoRGBMatrix(this.world.mario.x, this.world.mario.y);
                     } else {
                         currentFrame = imgPre.getRGBMatrix();
                     }
