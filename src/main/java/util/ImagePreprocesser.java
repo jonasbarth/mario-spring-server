@@ -37,8 +37,14 @@ public class ImagePreprocesser {
         Graphics2D bGr = bufferedImage.createGraphics();
         bGr.drawImage(this.image, 0, 0, null);
         bGr.dispose();
+
+        this.saveImage("original.png", bufferedImage);
+
         BufferedImage cropped = cropImage(bufferedImage, 0, 20, 256, 220);
+        this.saveImage("cropped.png", cropped);
         BufferedImage finalImage = bilinear(cropped, this.scaledWidth, this.scaledHeight);
+
+        this.saveImage("resized.png", finalImage);
 
         //byte[] pixels = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
         int[][][] matrix = new int[3][finalImage.getHeight()][finalImage.getWidth()];
@@ -219,7 +225,7 @@ public class ImagePreprocesser {
         //System.out.printf("Mario is at %f, %f\n", marioX, marioY);
         //System.out.printf("x1 = %f, x2 = %f, y1 = %f, y2 = %f\tDims = %d x % d\tcameraX = %f, cameraY = %f\txa = %f, ya = %f\n", x1, x2, y1, y2, cropped.getWidth(), cropped.getHeight(), this.marioWorld.cameraX, this.marioWorld.cameraY, this.marioWorld.mario.xa, this.marioWorld.mario.ya);
         /*
-        File outputfile = new File("image_" + x1 + ".jpg");
+        File outputfile = new File("cropped" + x1 + ".jpg");
         try {
             ImageIO.write(cropped, "jpg", outputfile);
         }
@@ -304,6 +310,16 @@ public class ImagePreprocesser {
         final AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
         scaledImage = ato.filter(bufferedImage, scaledImage);
         return scaledImage;
+    }
+
+    public void saveImage(String name, BufferedImage image) {
+        File outputfile = new File(name);
+        try {
+            ImageIO.write(image, "jpg", outputfile);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 }
